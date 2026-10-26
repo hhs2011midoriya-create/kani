@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: overdrive-rector-rooms
+    runtime: node
+    region: singapore
+    plan: free
+    autoDeployTrigger: "off"
+    buildCommand: node --check room-server.mjs
+    startCommand: node room-server.mjs
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 24.19.0
+      - key: HOST
+        value: 0.0.0.0
+      - key: ROOM_ALLOWED_ORIGINS
+        value: https://hhs2011midoriya-create.github.io
+      - key: ROOM_MAX_ROOMS
+        value: "32"
