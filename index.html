@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#07121b">
+  <meta name="description" content="挟んで反転。味方を統合。敵陣へ突撃。戦術ボードと3Dメカアクションがつながる、OVERDRIVE: RECTORのプレイ可能な試作。">
+  <title>OVERDRIVE: RECTOR — Tactical Mech Operations</title>
+  <link rel="icon" href="game.icon.png">
+  <style>
+    @font-face{font-family:RC;src:url('ui.ttf') format('truetype');font-display:swap}
+    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#050b12;color:#e8f3f3;font-family:RC,system-ui,sans-serif;overflow:hidden}
+    body{display:grid;place-items:center;background:radial-gradient(ellipse at 67% 20%,#15333c 0,transparent 55%),#050b12}
+    #stage{position:relative;width:100vw;height:100dvh;overflow:hidden}canvas{display:block;width:100%;height:100%;outline:none;touch-action:none}
+    #boot{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;justify-content:center;padding:clamp(24px,7vw,100px);background:linear-gradient(90deg,rgba(5,13,22,.98),rgba(5,13,22,.82)),repeating-linear-gradient(0deg,transparent,transparent 59px,#366072 60px),repeating-linear-gradient(90deg,transparent,transparent 59px,#366072 60px)}
+    .setup{position:relative;z-index:2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:min(620px,100%);margin:0 0 22px}.setup label{font-size:13px;color:#a7c6ce;display:grid;gap:6px}.setup select{width:100%;min-height:45px;border:1px solid #51747e;border-radius:3px;background:#112936;color:#e8f3f3;font:16px RC,system-ui;padding:9px 12px;cursor:pointer}.setup select:focus{outline:2px solid #76ddcf}.setup-note{position:relative;z-index:2;color:#a4bec7;font-size:13px;line-height:1.6;margin:0 0 16px;width:min(620px,100%)}.setup select:disabled{opacity:.55}.lead{margin:18px 0!important}.tags{margin-bottom:18px!important}.eyebrow{margin-bottom:14px!important}
+    @media(min-width:900px) and (max-height:800px){#boot{padding:26px 6vw}h1{font-size:60px}.lead{font-size:17px}.foot{bottom:12px}.setup{margin-bottom:12px}.tags{display:none}}
+    @media(max-height:580px){#boot{overflow:auto;justify-content:flex-start!important;padding-top:25px!important}.setup{grid-template-columns:repeat(4,minmax(0,1fr));width:min(900px,100%);gap:8px}.setup select{font-size:13px;padding:8px 4px}.setup-note{margin-bottom:10px}.foot{position:static;margin-top:20px}.lead{margin:12px 0!important}.tags{display:none}h1 br{display:none}h1 span{margin-left:14px}}
+    #boot::after{content:'O / R';position:absolute;right:5%;top:15%;font:bold clamp(100px,25vw,400px)/1 system-ui;letter-spacing:-.08em;transform:skewY(-10deg);color:#74ead30b;pointer-events:none}
+    .eyebrow{color:#76ddcf;letter-spacing:.18em;font-size:12px;margin-bottom:22px}.dot{display:inline-block;width:6px;height:6px;background:#76ddcf;margin-right:10px;box-shadow:0 0 16px #76ddcf}
+    h1{position:relative;z-index:1;margin:0;font:800 clamp(42px,7.2vw,100px)/1.04 system-ui;letter-spacing:-.055em}h1 span{color:#77dfd1}
+    .lead{font-size:clamp(15px,1.7vw,22px);line-height:1.9;margin:25px 0;color:#b1c5cc}.tags{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:30px}.tags span{font-size:12px;border:1px solid #34525d;padding:8px 12px;color:#9ab6c2}
+    button{font:inherit;cursor:pointer;border:1px solid #74ddcf;border-radius:3px;padding:17px 24px;color:#071b21;background:#74ddcf;min-height:52px;font-weight:bold}button:hover{background:#a2f4e8}button:focus-visible{outline:3px solid #ffbe74;outline-offset:4px}button:disabled{cursor:wait;opacity:.6}
+    .actions{position:relative;z-index:2;display:flex;gap:12px;align-items:center}.secondary{background:transparent;color:#9fc5cd;border-color:#335864}.secondary:hover{background:#16343e}
+    #status{font-size:13px;color:#8eafbb;margin-top:20px;min-height:24px;max-width:700px;white-space:pre-line}.meter{width:min(420px,100%);height:3px;background:#1b3340;margin-top:10px}.meter span{display:block;height:100%;width:0;background:#ffbd77;transition:width .15s}
+    .foot{position:absolute;bottom:24px;left:clamp(24px,7vw,100px);right:30px;color:#667f8f;font-size:11px;letter-spacing:.09em}#expand{position:absolute;top:0;right:0;z-index:2;background:#09202bcc;color:#a3d4d3;border:none;min-height:30px;padding:5px 10px;font-size:12px}#expand[hidden]{display:none}
+    #guide{max-height:85dvh;overflow:auto;border:1px solid #477b84;background:#0c202c;color:#d9ecee;max-width:620px;padding:28px;line-height:1.8}#guide::backdrop{background:#02080bd9}#guide h2{margin-top:0;color:#77dfd1}#guide button{width:100%;margin-top:10px}#guide p{font-size:15px}
+    #rotate{display:none;position:absolute;inset:0;z-index:5;background:#07121bef;align-items:center;justify-content:center;text-align:center;padding:30px;line-height:2;color:#a6d4d2;font-size:20px}
+    @media(orientation:portrait) and (max-width:700px){.lead br{display:none}.tags{gap:6px}.foot{font-size:10px}.actions{flex-wrap:wrap}h1{font-size:12.5vw}}
+    @media(orientation:portrait) and (pointer:coarse) and (max-width:700px){body.playing #rotate{display:flex}}
+    @media(max-height:520px){#boot{padding:20px 7vw}.eyebrow{margin-bottom:12px}h1{font-size:48px}.lead{margin:12px 0;font-size:14px}.tags{margin-bottom:14px}.tags span{padding:4px 8px}.foot{bottom:10px;font-size:10px}#status{margin-top:8px}button{padding:12px 20px}.meter{margin-top:4px}}
+    @media(min-width:900px) and (max-height:800px){h1{font-size:60px}.lead{font-size:17px}.tags{display:none}.foot{bottom:12px}}
+    @media(max-height:580px){.tags{display:none}.foot{position:static;margin-top:20px}.setup{margin-bottom:10px}.eyebrow{margin-bottom:12px!important}.lead{margin:10px 0!important}}
+    #expand{top:auto;bottom:8px;left:auto;right:8px;min-height:36px}
+    @media(pointer:coarse){#expand{display:none}}
+    @media(orientation:portrait) and (pointer:coarse){body.playing #rotate{display:flex}}
+    @media(orientation:portrait) and (max-width:700px){#boot{overflow:auto;justify-content:flex-start;padding:28px}.foot{position:static;margin-top:18px}.actions{flex-shrink:0}.lead{word-break:normal;overflow-wrap:anywhere}}
+  </style>
+</head>
+<body>
+ <main id="stage">
+  <canvas id="canvas" width="1280" height="720" tabindex="0" aria-label="OVERDRIVE: RECTOR ゲーム画面。盤面の機体をクリックして操作。戦闘中はWASD移動、左クリック射撃。">WebGL 2対応ブラウザが必要です。</canvas>
+  <button id="expand" hidden aria-label="ゲームを全画面表示">全画面 ↗</button>
+  <section id="boot" aria-label="ゲーム開始">
+    <div class="eyebrow"><span class="dot"></span>TACTICAL MECH OPERATIONS / PROTOTYPE 0.5</div>
+    <h1>OVERDRIVE:<br><span>RECTOR</span></h1>
+    <p class="lead">盤面で奪う。装甲を纏う。戦場を駆ける。<br>戦術と操縦がつながる、メカバトル・シミュレーション。</p>
+    <div class="tags"><span>5 MECH BOARD MODES</span><span>2–4 PILOTS</span><span>GAMEPAD READY</span></div>
+    <div class="setup" aria-label="対戦設定">
+      <label for="game-mode">ルール<select id="game-mode"><option value="reverse">RECTOR / オリジナル</option><option value="chess">メカチェス</option><option value="shogi">メカ将棋</option><option value="go">メカ囲碁</option><option value="reversi">メカリバーシ</option></select></label>
+      <label for="player-count">対戦人数<select id="player-count"><option value="2">2人対戦</option><option value="4">4人対戦</option></select></label>
+      <label for="match-format">対戦形式<select id="match-format" disabled><option value="ffa">個人戦</option><option value="teams">2対2（P1＋P3 対 P2＋P4）</option></select></label>
+      <label for="opponent-type">対戦相手<select id="opponent-type"><option value="cpu">CPUと対戦</option><option value="friends">フレンド・オンライン対戦</option></select></label>
+    </div>
+    <p class="setup-note" id="setup-note">選んだルールで新しい作戦を開始します。全モードにメカ戦闘があります。</p>
+    <div class="actions"><button id="launch">この設定で開始　→</button><button class="secondary" id="help">操作ガイド</button></div>
+    <div id="status" role="status" aria-live="polite">PC・横画面のスマホに対応 / 初回読み込み 約10MB</div>
+    <div class="meter" aria-hidden="true"><span id="progress"></span></div>
+    <div class="foot">CPU / FRIEND ROOMS · 2 vs 2 / FREE FOR ALL · <a style="color:inherit" href="credits.html" target="_blank" rel="noopener">CREDITS</a></div>
+  </section>
+  <div id="rotate">端末を横向きにしてください<br>TACTICAL DISPLAY / LANDSCAPE</div>
+ </main>
+ <dialog id="guide"><h2>FIELD MANUAL</h2><p>ゲーム上部の「対戦 / MODE」（スマホは「対戦」）でメカチェス・将棋・囲碁・リバーシ、2人／4人、個人戦／2対2を選べます。オンラインはルームを作成し、同じサーバーへ招待コードで参加、全員が準備完了して開始します。</p><p>青い機体を選択して、光る移動先をタップ。敵マスに入ると3D戦闘へ。「戦闘訓練」（スマホは画面下、PCは右側またはTキー）から戦闘だけ試せます。Hキーで操作ガイド、Escで選択解除。</p><p>味方で敵を直線に挟むと反転。味方のマスへ移動すると、その機体を消費して全回復＋オーバードライブを発動します。</p><p>PC：WASD移動、左クリック長押し射撃、右クリック近接、Shift回避、Space突撃、F必殺、X装甲解除、Esc一時停止。</p><p>コントローラー：盤面は十字／左スティック、A決定、B戻る、Start対戦画面。戦闘は左スティック移動、RT射撃、RB近接、LB回避、A突撃、Y必殺、Bパージ。ブラウザでは最初にボタンを押して認識させてください。</p><p>スマホは横向きでプレイ。左スティックで移動。右SHOT長押しで射撃、QBで回避、ABで突撃、BURSTで必殺、PURGEで装甲解除。縦向きに回転すると入力を解除します。CPU戦は停止し、横向きへ戻して再開できます。</p><p>35秒で時間切れ。受けたダメージは盤面へ引き継ぎます。オンラインの操作停止中も対戦の時計は進みます。作戦はこのブラウザに保存されます。</p><button id="close-guide">了解</button></dialog>
+ <script src="game.js"></script>
+ <script src="launch.js"></script>
+</body>
+</html>
